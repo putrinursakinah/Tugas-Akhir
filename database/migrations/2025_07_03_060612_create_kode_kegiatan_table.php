@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_kegiatan');
             $table->string('kode', 20)->unique();
             $table->string('kegiatan', 100);
-            $table->string('kategori', 50);
+            $table->string('kategori_kegiatan', 50);
             $table->unsignedBigInteger('kategori_id_kategori');
             $table->foreign('kategori_id_kategori')->references('id_kategori')->on('kategori');
             $table->unsignedBigInteger('id_tahun_ajaran_kode_kegiatan');

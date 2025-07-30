@@ -38,15 +38,27 @@ class KodeKegiatanController extends Controller
             'kegiatan' => 'required|string|max:255',
             'kategori_id_kategori' => 'required|exists:kategori,id_kategori',
         ]);
+
+        $kategori = Kategori::find($request->kategori_id_kategori);
+        $kode = (int) $request->kode;
+
+        // Validasi berdasarkan kategori
+        if ($kategori->nama_kategori === 'Pendapatan' && !($kode >= 1000 && $kode <= 1999)) {
+            return redirect()->back()->withInput()->withErrors(['kode' => 'Kode untuk kategori Pendapatan harus antara 1000–1999.']);
+        }
+
+        if ($kategori->nama_kategori === 'Belanja' && !($kode >= 2000 && $kode <= 2999)) {
+            return redirect()->back()->withInput()->withErrors(['kode' => 'Kode untuk kategori Belanja harus antara 2000–2999.']);
+        }
         $tahun = session('tahun_ajaran', date('Y')); // ambil tahun ajaran dari session atau gunakan tahun saat ini
 
         $tahunAjaran = TahunAjaranKodeKegiatan::firstOrCreate(['tahun' => $tahun]);
-        
+
         KodeKegiatan::create([
             'kode' => $request->kode,
             'kegiatan' => $request->kegiatan,
             'kategori_id_kategori' => $request->kategori_id_kategori,
-            'kategori' => Kategori::find($request->kategori_id_kategori)->nama_kategori,
+            'kategori_kegiatan' => Kategori::find($request->kategori_id_kategori)->nama_kategori,
             'id_tahun_ajaran_kode_kegiatan' => $tahunAjaran->id_tahun_ajaran_kode_kegiatan,
         ]);
 
@@ -94,7 +106,7 @@ class KodeKegiatanController extends Controller
     {
         $ids = $request->ids;
         if ($ids && count($ids)) {
-            \App\Models\KodeKegiatan::whereIn('id', $ids)->delete();
+            KodeKegiatan::whereIn('id_kegiatan', $ids)->delete();
             return redirect()->route('kegiatan.view')->with('success', 'Data terpilih berhasil dihapus!');
         }
         return redirect()->route('kegiatan.view')->with('error', 'Tidak ada data yang dipilih untuk dihapus!');
@@ -103,10 +115,13 @@ class KodeKegiatanController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request)
     {
-        $kegiatan = KodeKegiatan::find($id);
-        $kegiatan->delete();
+        $ids = $request->ids;
+        if ($ids && count($ids)) {
+            KodeKegiatan::whereIn('id_kegiatan', $ids)->delete();
+            return redirect()->route('kegiatan.view')->with('success', 'Data terpilih berhasil dihapus!');
+        }
 
         return redirect()->route('kegiatan.view')->with('success', 'Kegiatan berhasil dihapus!');
     }

@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kelas_has_siswa', function (Blueprint $table) {
+            $table->id('id_kelashassiswa');
             $table->unsignedBigInteger('kelas_id_kelas');
             $table->unsignedBigInteger('siswa_id_siswa');
-            $table->foreign('kelas_id_kelas')->references('id_kelas')->on('kelas')->onDelete('cascade');
-            $table->foreign('siswa_id_siswa')->references('id_siswa')->on('siswa')->onDelete('cascade');
-            $table->primary(['kelas_id_kelas', 'siswa_id_siswa']);
+            $table->foreign('kelas_id_kelas')->references('id_kelas')->on('kelas')->onDelete('restrict');
+            $table->foreign('siswa_id_siswa')->references('id_siswa')->on('siswa')->onDelete('restrict');
+            $table->unique(['kelas_id_kelas', 'siswa_id_siswa']);
+            $table->timestamps();
         });
     }
 

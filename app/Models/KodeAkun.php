@@ -28,6 +28,6 @@ class KodeAkun extends Model
     }
     public function dataAnggaran()
     {
-        return $this->hasMany(DataAnggaran::class, 'kode_akun_id_akun');
+        return $this->hasMany(DataAnggaran::class, 'kode_akun_id_akun', 'id_akun');
     }
 }

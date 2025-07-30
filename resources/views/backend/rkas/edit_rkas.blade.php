@@ -100,7 +100,7 @@
                             <button type="submit" class="btn btn-primary btn-sm font-weight-bold">
                                 <i class="fas fa-save"></i> SIMPAN
                             </button>
-                            <a href="{{ route('rkas.view') }}" class="btn btn-info btn-sm font-weight-bold">
+                            <a href="{{ route('rkas.view', ['kategori_id' => $kategori->id_kategori]) }}" class="btn btn-info btn-sm font-weight-bold">
                                 <i class="fas fa-times"></i> BATAL
                             </a>
                         </div>

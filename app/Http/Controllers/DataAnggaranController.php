@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\DataAnggaranRepository;
 use Illuminate\Http\Request;
 use App\Models\DataAnggaran;
 use App\Models\KodeAkun;
@@ -9,6 +10,9 @@ use App\Models\KodeKegiatan;
 use App\Exports\DataAnggaranExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Komponen;
+use App\Models\Kategori;
+use App\Http\Requests\DataAnggaranRequest;
+use App\Http\Requests\KomponenSimpanRequest;
 
 class DataAnggaranController extends Controller
 {
@@ -17,97 +21,129 @@ class DataAnggaranController extends Controller
      */
     public function index()
     {
-        
-        $pendapatan = DataAnggaran::where('jenis', 'pendapatan')->whereNull('parent_id')->get();
-        $belanja = DataAnggaran::where('jenis', 'belanja')->whereNull('parent_id')->get();
 
-        // Hitung summary
-        $pendapatan_jumlah = $pendapatan->sum('jumlah');
-        $belanja_jumlah = $belanja->sum('jumlah');
-
-        return view('backend.rkas.view_rkas');
+        $dataDashboard = DataAnggaranRepository::getDashboardData();
+        return view('backend.rkas.view_rkas', $dataDashboard);
     }
 
-    public function komponenView($id)
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function komponenForm()
     {
-        $rkas = DataAnggaran::with('kegiatan')->findOrFail($id);
-        return view('rkas.komponen_rkas', compact('rkas'));
+        if (!session()->has('selected_kegiatan_id')) {
+            return redirect()->route('rkas.view')->with('error', 'Silakan pilih kegiatan terlebih dahulu.');
+        }
+        $kegiatan = KodeKegiatan::with('kategori')->find(session('selected_kegiatan_id'));
+        $kategori = $kegiatan->kategori;
+
+        return view('backend.rkas.komponen_rkas', compact('kegiatan', 'kategori'));
     }
 
-    public function komponenStore(Request $request, $id)
+    public function komponenSimpan(Request $request)
     {
         $request->validate([
-            'kode' => 'required|max:3',
+            'kode' => 'required',
             'uraian' => 'required',
+            'kegiatan_id' => 'required|exists:kode_kegiatan,id_kegiatan',
         ]);
 
-        Komponen::create([
+        $selectedKegiatan = session('selectedKegiatan');
+
+        $komponens = session()->get('komponen_sementara', []);
+
+        $komponens[] = [
+            'id' => uniqid(),
             'kode' => $request->kode,
             'uraian' => $request->uraian,
-            'data_anggaran_id' => $id,
-        ]);
+            'kegiatan_id' => $request->kegiatan_id,
+            'kegiatan_kode' => $selectedKegiatan ? $selectedKegiatan->kode : '',
+            'kegiatan_nama' => $selectedKegiatan ? $selectedKegiatan->kegiatan : '',
+        ];
+        session()->put('komponen_sementara', $komponens);
 
         return redirect()->route('rkas.view')->with('success', 'Komponen berhasil ditambahkan!');
-    }
-
-    public function akunTambah($komponen_id)
-    {
-        $komponen = DataAnggaran::findOrFail($komponen_id);
-        $kegiatan = $komponen->parent; // relasi parent di model Rkas
-        $kategori = $kegiatan->jenis ?? '';
-        $daftar_akun = KodeAkun::where('kategori', $kategori)->get();
-        $kegiatan_kode = $kegiatan->kode_akun ?? '';
-        $kegiatan_nama = $kegiatan->uraian ?? '';
-        $komponen_kode = $komponen->kode_akun ?? '';
-        $komponen_nama = $komponen->uraian ?? '';
-        $daftar_akun = KodeAkun::all();
-
-        return view('backend.rkas.akun_rkas', compact(
-            'kategori',
-            'kegiatan_kode',
-            'kegiatan_nama',
-            'komponen_kode',
-            'komponen_nama',
-            'komponen_id',
-            'daftar_akun'
-        ));
     }
 
     public function akunStore(Request $request, $komponen_id)
     {
         $request->validate([
             'akun_ids' => 'required|array',
-            'akun_ids.*' => 'exists:akun,id',
         ]);
 
-        $komponen = DataAnggaran::findOrFail($komponen_id);
+        $komponens = session('komponen_sementara', []);
+        $komponen = collect($komponens)->firstWhere('id', $komponen_id);
 
-        foreach ($request->akun_ids as $akun_id) {
-            $akun = KodeAkun::findOrFail($akun_id);
-
-            DataAnggaran::create([
-                'parent_id'    => $komponen->id,
-                'kode_akun'    => $akun->kode,
-                'uraian'       => $akun->uraian ?? $akun->kegiatan,
-                'jenis'        => $komponen->jenis,
-                'vol'          => null,
-                'satuan'       => null,
-                'harga_satuan' => null,
-                'jumlah'       => null,
-            ]);
+        if (!$komponen) {
+            return redirect()->route('rkas.view')->with('error', 'Komponen tidak ditemukan.');
         }
+
+        $akun_sementara = session()->get('akun_sementara', []);
+        foreach ($request->akun_ids as $akun_id) {
+            $akun = KodeAkun::where('id_akun', $akun_id)->first();
+            if ($akun) {
+                $akun_sementara[] = [
+                    'id' => uniqid(),
+                    'kode' => $akun->kode,
+                    'uraian' => $akun->kegiatan,
+                    'komponen_id' => $komponen_id,
+                ];
+            }
+        }
+        session()->put('akun_sementara', $akun_sementara);
+
+        return redirect()->route('rkas.view')->with('success', 'Akun berhasil ditambahkan ke komponen.');
+    }
+
+    public function akunSimpan(Request $request, $komponen_id)
+    {
+        $request->validate([
+            'kode_akun_id_akun' => 'required|exists:kode_akun,id_akun',
+            'komponen_id' => 'required',
+        ]);
+
+        $akun = KodeAkun::find($request->kode_akun_id_akun);
+
+        $akun_sementara = session()->get('akun_sementara', []);
+        $akun_sementara[] = [
+            'id' => uniqid(),
+            'kode' => $akun->kode,
+            'uraian' => $akun->uraian,
+            'komponen_id' => $komponen_id,
+        ];
+        session()->put('akun_sementara', $akun_sementara);
 
         return redirect()->route('rkas.view')->with('success', 'Akun berhasil ditambahkan ke komponen');
     }
 
+    public function akunTambah($komponen_id)
+    {
+        $kode_akun = KodeAkun::all(); // Kirim semua data akun ke form
+
+        return view('backend.rkas.akun_rkas', [
+            'komponen_id' => $komponen_id,
+            'kode_akun' => $kode_akun,
+        ]);
+    }
+
+
     public function detailTambah($akun_id)
     {
-        $akun = DataAnggaran::findOrFail($akun_id);
+        $akun = collect(session('akun_sementara', []))->firstWhere('id', $akun_id);
 
-        // parent 
-        $komponen = $akun->parent;
-        $kegiatan = $komponen ? $komponen->parent : null;
-        $kategori = $kegiatan ? $kegiatan->parent : null;
+        if (!$akun) {
+            return redirect()->route('rkas.view')->with('error', 'Akun tidak ditemukan.');
+        }
+
+        // Ambil komponen dari session
+        $komponen = collect(session('komponen_sementara', []))->firstWhere('id', $akun['komponen_id']);
+        $kegiatan = null;
+        $kategori = null;
+        if ($komponen) {
+            $kegiatan = KodeKegiatan::find($komponen['kegiatan_id']);
+            $kategori = $kegiatan ? $kegiatan->kategori : null;
+        }
 
         return view('backend.rkas.detail_rkas', compact('akun', 'komponen', 'kegiatan', 'kategori'));
     }
@@ -149,43 +185,57 @@ class DataAnggaranController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($kategori_id)
     {
-        $kegiatan = KodeKegiatan::all(); // Ambil semua data kegiatan
-        return view('backend.rkas.add_rkas', compact('kegiatan'));
+        $kategori = Kategori::findOrFail($kategori_id);
+        $kegiatan = KodeKegiatan::where('kategori_id_kategori', $kategori_id)->get();
+        $kodeAkun = KodeAkun::all();
+
+        return view('backend.rkas.add_rkas', compact('kategori', 'kegiatan', 'kodeAkun', 'kategori_id'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(DataAnggaranRequest $request)
     {
+        $kodeKegiatan = KodeKegiatan::find($request->kegiatan_id);
 
-        $request->validate([
-            'kegiatan_id' => 'required|exists:kode_kegiatan,id_kegiatan',
-        ]);
-        $kegiatan = KodeKegiatan::findOrFail($request->kegiatan_id);
-
-        DataAnggaran::create([
-            'kode' => $kegiatan->kode,
-            'uraian' => $kegiatan->kegiatan,
-            'jenis' => strtolower($kegiatan->kategori),
-            'vol' => null,
-            'satuan' => null,
-            'harga_satuan' => null,
-            'jumlah' => null,
+        $komponen = Komponen::create([
+            'kode' => $request->komponen_kode,
+            'uraian' => $request->komponen_uraian,
+            'kode_kegiatan_id_kegiatan' => $request->kegiatan_id,
+            'kode_akun_id_akun' => $request->akun_id,
         ]);
 
-        return redirect()->route('rkas.view')->with('success', 'Kegiatan berhasil ditambahkan!');
+        $akun = KodeAkun::find($request->akun_id);
+
+
+        $detail = DataAnggaran::create([
+
+            'uraian' => $request->detail_uraian,
+            'vol' => $request->detail_vol,
+            'satuan' => $request->detail_satuan,
+            'harga_satuan' => $request->detail_harga_satuan,
+            'jumlah' => $request->detail_jumlah,
+            'kode_kegiatan_id_kegiatan' => $request->kegiatan_id,
+            'komponen_id_komponen' => $komponen->id_komponen,
+        ]);
+
+
+        // return redirect()->route('rkas.view')->with('success', 'Data berhasil disimpan');
     }
-
     public function cetak()
     {
-        $pendapatan = DataAnggaran::where('kategori', 'pendapatan')->get(); // Ambil data pendapatan
-        $belanja = DataAnggaran::where('kategori', 'belanja')->get(); // Ambil data belanja
-        $surplus = $this->calculateSurplus($pendapatan, $belanja); // Fungsi untuk menghitung surplus
+        $dataAnggaran = DataAnggaran::with([
+            'komponen',
+            'kegiatan',
+            'parent',
+        ])->get();
 
-        return view('backend.rkas.cetak_rkas', compact('pendapatan', 'belanja', 'surplus'));
+        $total = $dataAnggaran->sum('jumlah');
+
+        return view('backend.rkas.cetak_rkas', compact('dataAnggaran', 'total'));
     }
 
     private function calculateSurplus($pendapatan, $belanja)
@@ -198,6 +248,14 @@ class DataAnggaranController extends Controller
     public function downloadExcel()
     {
         return Excel::download(new DataAnggaranExport, 'rkas.xlsx');
+    }
+
+    public function lock()
+    {
+        // Kunci semua data anggaran (bisa dibatasi per tahun/instansi jika perlu)
+        DataAnggaran::query()->update(['is_locked' => 1]);
+
+        return redirect()->route('rkas.view')->with('success', 'Data RKAS telah dikunci dan tidak dapat diedit lagi.');
     }
 
     /**
@@ -270,7 +328,7 @@ class DataAnggaranController extends Controller
                 }
             }
         }
-        return redirect()->route('rkas.view')->with('success', 'Data berhasil diubah');
+        return redirect()->route('rkas.view', ['kategori_id' => $request->kategori_id])->with('success', 'Data berhasil diubah');
     }
 
     /**
@@ -280,6 +338,6 @@ class DataAnggaranController extends Controller
     {
         $rkas = DataAnggaran::findOrFail($id);
         $rkas->delete();
-        return redirect()->route('rkas.view')->with('success', 'Data berhasil dihapus');
+        return redirect()->route('rkas.view', ['kategori_id' => $rkas->kategori_id])->with('success', 'Data berhasil dihapus');
     }
 }

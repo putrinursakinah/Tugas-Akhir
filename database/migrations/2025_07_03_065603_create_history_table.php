@@ -16,8 +16,8 @@ return new class extends Migration
             $table->integer('revisi');
             $table->date('tanggal');
             $table->dateTime('waktu_pembuatan');
-            $table->unsignedBigInteger('data_anggaran_id');
-            $table->foreign('data_anggaran_id')->references('id_anggaran')->on('data_anggaran');
+            $table->unsignedBigInteger('data_anggaran_id_anggaran');
+            $table->foreign('data_anggaran_id_anggaran')->references('id_anggaran')->on('data_anggaran');
             $table->timestamps();
         });
     }

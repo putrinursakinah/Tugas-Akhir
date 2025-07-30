@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id('id_siswa');
             $table->integer('nis')->unique();
             $table->string('nama');
-            $table->string('kelas', 5);
+            $table->string('alamat');
+            $table->string('telepon');
+            $table->string('angkatan');
             $table->timestamps();
         });
     }

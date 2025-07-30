@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\History;
+use App\Models\DataAnggaran;
 
 class HistoryController extends Controller
 {
@@ -14,7 +15,8 @@ class HistoryController extends Controller
     {
         $histori = History::orderBy('revisi')->get();
         $nextRevisi = ($histori->max('revisi') ?? 0) + 1;
-        return view('backend.histori.view_histori', compact('histori', 'nextRevisi'));
+        $dataAnggaran = DataAnggaran::first();
+        return view('backend.histori.view_histori', compact('histori', 'nextRevisi', 'dataAnggaran'));
     }
 
     /**
@@ -35,14 +37,21 @@ class HistoryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi jika diperlukan
-        $nextRevisi = History::max('revisi') + 1; // Menghitung revisi selanjutnya
+        $dataAnggaran = DataAnggaran::first();
 
-        // Simpan data ke tabel histori
+        if (!$dataAnggaran) {
+            return redirect()->back()->withErrors('Belum ada RKAS yang tersedia untuk direvisi.');
+        }
+
+        // Hitung revisi berikutnya
+        $nextRevisi = (History::max('revisi') ?? 0) + 1;
+
+        // Simpan histori baru
         History::create([
             'revisi' => $nextRevisi,
-            'tanggal' => now()->format('Y-m-d'), // Tanggal saat ini
-            'created_at' => now(), // Waktu saat ini
+            'tanggal' => now()->format('Y-m-d'),
+            'waktu_pembuatan' => now(),
+            'data_anggaran_id_anggaran' => $dataAnggaran->id_anggaran,
         ]);
 
         return redirect()->route('histori.view')->with('success', 'History berhasil dibuat!');

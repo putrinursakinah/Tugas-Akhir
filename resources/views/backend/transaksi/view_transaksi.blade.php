@@ -46,7 +46,7 @@
                         <tr>
                             <td><input type="checkbox" name="ids[]" value="{{ $item->id }}"></td>
                             <td>
-                                <a href="{{ route('transaksi.edit', $item->id) }}" class="btn btn-primary btn-sm">
+                                <a href="#" class="btn btn-primary btn-sm">
                                     <i class="fas fa-edit"></i> EDIT
                                 </a>
                             </td>
@@ -58,7 +58,7 @@
                             <td>{{ $item->jenis_transaksi }}</td>
                             <td>{{ $item->akun }}</td>
                             <td>
-                                <a href="{{ route('transaksi.cetak', $item->id) }}" class="btn btn-primary btn-sm">
+                                <a href="{{ route('transaksi.cetak', $item->id_transaksi) }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-print"></i> CETAK
                                 </a>
                             </td>

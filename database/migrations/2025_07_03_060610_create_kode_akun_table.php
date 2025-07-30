@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id('id_akun');
             $table->string('kode', 20)->unique();
             $table->string('kegiatan');
-            $table->unsignedBigInteger('komponen_id_komponen')->nullable();
-            $table->foreign('komponen_id_komponen')->references('id_komponen')->on('komponen');
             $table->timestamps();
         });
     }

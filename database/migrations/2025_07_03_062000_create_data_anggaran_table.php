@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('data_anggaran', function (Blueprint $table) {
             $table->id('id_anggaran');
-            $table->string('kode', 20)->unique();
             $table->string('uraian');
             $table->integer('vol');
             $table->string('satuan', 20);
             $table->integer('harga_satuan');
             $table->string('jumlah');
-            $table->string('pengeluaran');
-            $table->unsignedBigInteger('parent_id')->nullable();
-            $table->unsignedBigInteger('kode_akun_id_akun');
-            $table->foreign('kode_akun_id_akun')->references('id_akun')->on('kode_akun');
+            $table->string('pengeluaran')->default('0');
+            $table->unsignedBigInteger('kode_kegiatan_id_kegiatan');
+            $table->foreign('kode_kegiatan_id_kegiatan')->references('id_kegiatan')->on('kode_kegiatan');
+            $table->unsignedBigInteger('komponen_id_komponen')->nullable();
+            $table->foreign('komponen_id_komponen')->references('id_komponen')->on('komponen');
             $table->timestamps();
         });
     }

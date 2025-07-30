@@ -32,7 +32,7 @@ class KodeAkunController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode' => 'required|numeric|min:100000|unique:kode_akun,kode',
+            'kode' => 'required|digits:6|unique:kode_akun,kode',
             'kegiatan' => 'required|string|max:255',
         ]);
 
@@ -79,7 +79,7 @@ class KodeAkunController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'kode' => 'required|numeric|min:100000|unique:kode_akun,kode,' . $id. ',id_akun',
+            'kode' => 'required|numeric|min:100000|unique:kode_akun,kode,' . $id . ',id_akun',
             'kegiatan' => 'required|string|max:255',
         ]);
         $akun = KodeAkun::findOrFail($id);
@@ -105,9 +105,9 @@ class KodeAkunController extends Controller
     {
         $ids = $request->ids;
         if ($ids && count($ids)) {
-            KodeAkun::whereIn('id', $ids)->delete();
-            return redirect()->route('akun.view')->with('success', 'Selected Akun deleted successfully.');
+            KodeAkun::whereIn('id_akun', $ids)->delete();
+            return redirect()->route('akun.view')->with('success', 'Data akun berhasil dihapus.');
         }
-        return redirect()->route('akun.view')->with('error', 'No Akun selected for deletion.');
+        return redirect()->route('akun.view')->with('error', 'Tidak ada akun yang dipilih untuk dihapus.');
     }
 }

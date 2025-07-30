@@ -9,7 +9,8 @@ class DataAnggaran extends Model
 {
     use HasFactory;
     protected $table = 'data_anggaran';
-    protected $fillable= ['kode', 'uraian', 'vol','satuan', 'harga_satuan', 'jumlah'];
+    protected $primaryKey = 'id_anggaran';
+    protected $fillable = ['uraian', 'vol', 'satuan', 'harga_satuan', 'jumlah', 'pengeluaran', 'kode_kegiatan_id_kegiatan', 'komponen_id_komponen'];
     public function kodeAkun()
     {
         return $this->belongsTo(KodeAkun::class, 'kode_akun_id_akun');
@@ -24,6 +25,26 @@ class DataAnggaran extends Model
     }
     public function komponen()
     {
-        return $this->hasMany(Komponen::class, 'data_anggaran_id');
+        return $this->belongsTo(Komponen::class, 'komponen_id_komponen', 'id_komponen');
+    }
+    public function kegiatan()
+    {
+        return $this->belongsTo(KodeKegiatan::class, 'kode_kegiatan_id_kegiatan', 'id_kegiatan');
+    }
+    public function parent()
+    {
+        return $this->belongsTo(DataAnggaran::class, 'parent_id');
+    }
+    public function children()
+    {
+        return $this->hasMany(DataAnggaran::class, 'parent_id');
+    }
+    public function paguSpp()
+    {
+        return $this->hasMany(PaguSpp::class, 'data_anggaran_id_anggaran', 'id_anggaran');
+    }
+    public function realisasi()
+    {
+        return $this->hasMany(Realiasi::class, 'data_anggaran_id_anggaran', 'id_anggaran');
     }
 }
