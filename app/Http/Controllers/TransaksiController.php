@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use App\Models\ModeKas;
+use App\Models\KategoriKas;
+use App\Models\JenisTransaksi;
+use App\Models\Kategori;
+use Illuminate\Support\Facades\DB;
 
 class TransaksiController extends Controller
 {
@@ -17,21 +21,29 @@ class TransaksiController extends Controller
         return view('backend.transaksi.view_transaksi', compact('transaksi'));
     }
 
-    public function add()
-    {
-        $kategori = session('kategori');
-        $jenis = session('jenis');
-        return view('backend.transaksi.add_transaksi', compact('kategori', 'jenis'));
-    }
-
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $modeKas = ModeKas::all(); // Mengambil semua data dari tabel mode_kas
-        
-        return view('add_transaksi', ['modeKas' => $modeKas]);
+
+        $modeKasList = ModeKas::all();
+        $kategoriKasList = KategoriKas::all();
+        $jenisTransaksiList = JenisTransaksi::all();
+
+        return view('backend.transaksi.add_transaksi', compact('modeKasList', 'kategoriKasList', 'jenisTransaksiList'));
+    }
+
+    public function getKategoriByMode($id_mode)
+    {
+        $kategori = KategoriKas::where('mode_kas_id_mode', $id_mode)->get();
+        return response()->json($kategori);
+    }
+
+    public function getJenisTransaksi()
+    {
+        $jenis = JenisTransaksi::all();
+        return response()->json($jenis);
     }
 
     /**
@@ -39,25 +51,58 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'jumlah' => 'required|numeric|min:1',
-            'uraian' => 'required|string',
-            'penerima_uang' => 'required|string',
-            'jabatan_penerima_uang' => 'required|string',
+        // $request->validate([
+        //     'jumlah' => 'required|numeric|min:1',
+        //     'uraian' => 'required|string',
+        //     'penerima_uang' => 'required|string',
+        //     'jabatan_penerima_uang' => 'required|string',
+        $modeKas = KategoriKas::find($request->mode_kas_id);
 
-        ]);
-
+        $debet = 0;
+        $kredit = 0;
+        if ($modeKas->kategori->id_kategori == 1) {
+            $debet = $request->jumlah;
+        } else if ($modeKas->kategori->id_kategori == 2) {
+            $kredit = $request->jumlah;
+        }
         Transaksi::create([
-            'no_bukti' => $request->no_bukti,
             'tanggal' => $request->tanggal,
             'uraian' => $request->uraian,
-            'debet' => $request->jumlah,
-            'kredit' => 0,
-            'jenis_transaksi' => $request->jenis_transaksi,
-            'akun' => $request->akun,
-            'kuitansi' => $request->kuitansi,
+            'jenis_transaksi_id_transaksi' => $request->jenis_transaksi_id,
+            'data_anggaran_id' => $request->dataanggaran,
+            'debet' => $debet,
+            'kredit' => $kredit,
+
         ]);
+
         return redirect()->route('transaksi.view')->with('success', 'Transaksi berhasil ditambahkan!');
+    }
+
+    public function pagu()
+    {
+        $kategori = Kategori::all();
+
+        return view('backend.transaksi.pagu_transaksi', compact('kategori'));
+    }
+
+    public function getDataAnggaranByKategori($kategoriKasId)
+    {
+        $dataAnggaran = DB::table('data_anggaran')
+            ->join('komponen', 'data_anggaran.komponen_id_komponen', '=', 'komponen.id_komponen')
+            ->join('kode_kegiatan', 'komponen.kode_kegiatan_id_kegiatan', '=', 'kode_kegiatan.id_kegiatan')
+            ->join('kategori', 'kode_kegiatan.kategori_id_kategori', '=', 'kategori.id_kategori')
+            ->where('kategori.id_kategori', $kategoriKasId)
+            ->select('data_anggaran.id_anggaran', 'data_anggaran.uraian')
+            ->get();
+
+        return response()->json($dataAnggaran);
+    }
+
+    public function cetak($id)
+    {
+        $transaksi = Transaksi::with(['jenisTransaksi', 'detailAkun', 'dataAnggaran'])->findOrFail($id);
+
+        return view('backend.transaksi.cetak_transaksi', compact('transaksi'));
     }
 
     /**

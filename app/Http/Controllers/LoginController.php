@@ -12,7 +12,8 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function login_proses(Request $request){
+    public function login_proses(Request $request)
+    {
         $request->validate([
             'email' => 'required',
             'password' => 'required'
@@ -23,10 +24,18 @@ class LoginController extends Controller
             'password' => $request->password
         ];
 
-        if(Auth::attempt($data)){
-            return redirect('/dashboard');
-        }else{
-            return redirect()->route('login')->with('failed','email atau password salah');
+        if (Auth::attempt($data)) {
+            $user = Auth::user();
+
+            if ($user->role === 'bendahara') {
+                return redirect()->route('dashboard'); // /dashboard
+            } elseif ($user->role === 'kepala sekolah') {
+                return redirect()->route('kepsek.dashboard'); // /kepsek/dashboard
+            } else {
+                return redirect('/'); // fallback kalau role-nya tidak dikenali
+            }
+        } else {
+            return redirect()->route('login')->with('failed', 'Email atau password salah');
         }
     }
 }

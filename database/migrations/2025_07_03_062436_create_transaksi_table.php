@@ -18,10 +18,8 @@ return new class extends Migration
             $table->integer('debet');
             $table->integer('kredit');
             $table->unsignedBigInteger('jenis_transaksi_id_transaksi');
-            $table->unsignedBigInteger('detail_akun_id_akun');
             $table->unsignedBigInteger('data_anggaran_id');
             $table->foreign('jenis_transaksi_id_transaksi')->references('id_transaksi')->on('jenis_transaksi');
-            $table->foreign('detail_akun_id_akun')->references('id_akun')->on('detail_akun');
             $table->foreign('data_anggaran_id')->references('id_anggaran')->on('data_anggaran');
             $table->timestamps();
         });

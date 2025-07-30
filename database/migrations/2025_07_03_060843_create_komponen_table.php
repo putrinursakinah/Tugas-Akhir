@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('komponen', function (Blueprint $table) {
             $table->id('id_komponen');
+            $table->string('kode', 20);
             $table->string('uraian');
             $table->unsignedBigInteger('kode_kegiatan_id_kegiatan');
             $table->foreign('kode_kegiatan_id_kegiatan')->references('id_kegiatan')->on('kode_kegiatan');
+            $table->unsignedBigInteger('kode_akun_id_akun');
+            $table->foreign('kode_akun_id_akun')->references('id_akun')->on('kode_akun');
             $table->timestamps();
         });
     }

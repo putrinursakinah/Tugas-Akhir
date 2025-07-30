@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nama', 10);
             $table->string('tingkat');
             $table->string('jurusan');
-            $table->date('tahun_ajaran');
+            $table->string('tahun_ajaran', 9);
             $table->timestamps();
         });
     }

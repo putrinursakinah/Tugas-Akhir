@@ -10,10 +10,10 @@ class KodeKegiatan extends Model
     use HasFactory;
     protected $table = 'kode_kegiatan';
     protected $primaryKey = 'id_kegiatan';
-    protected $fillable = ['kode', 'kegiatan', 'kategori', 'kategori_id_kategori', 'id_tahun_ajaran_kode_kegiatan'];
+    protected $fillable = ['kode', 'kegiatan', 'kategori_kegiatan', 'kategori_id_kategori', 'id_tahun_ajaran_kode_kegiatan'];
     public function kategori()
     {
-        return $this->belongsTo(Kategori::class, 'kategori_id_kategori');
+        return $this->belongsTo(Kategori::class, 'kategori_id_kategori', 'id_kategori');
     }
     public function komponen()
     {
@@ -22,5 +22,9 @@ class KodeKegiatan extends Model
     public function tahunAjaran()
     {
         return $this->belongsTo(TahunAjaranKodeKegiatan::class, 'id_tahun_ajaran_kode_kegiatan');
+    }
+    public function dataAnggaran()
+    {
+        return $this->hasMany(DataAnggaran::class, 'kode_kegiatan_id_kegiatan');
     }
 }

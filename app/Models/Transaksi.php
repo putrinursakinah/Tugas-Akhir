@@ -10,6 +10,19 @@ class Transaksi extends Model
     use HasFactory;
     protected $table = 'transaksi';
     protected $primaryKey = 'id_transaksi';
+    protected $fillable = [
+        'no_bukti',
+        'tanggal',
+        'uraian',
+        'debet',
+        'kredit',
+        'jenis_transaksi_id_transaksi',
+        'detail_akun_id_akun',
+        'data_anggaran_id',
+        'kuitansi',
+        'penerima_uang',
+        'jabatan_penerima_uang',
+    ];
     public function jenisTransaksi() {
         return $this->belongsTo(JenisTransaksi::class, 'jenis_transaksi_id_transaksi');
     }
@@ -21,5 +34,8 @@ class Transaksi extends Model
     }
      public function spp() {
         return $this->hasOne(Spp::class, 'transaksi_id_transaksi');
+    }
+    public function pembayaran() {
+        return $this->hasMany(Pembayaran::class, 'transaksi_id_transaksi');
     }
 }

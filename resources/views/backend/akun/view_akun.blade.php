@@ -10,63 +10,75 @@
             </h6>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <!-- Tempatkan tombol di sini jika ingin di atas tabel -->
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox"></th>
-                            <th>Edit</th>
-                            <th>Kode</th>
-                            <th>Kegiatan</th>
-                            <th>Kategori</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($akun as $item)
-                        <tr>
-                            <td><input type="checkbox" name="ids[]" value="{{ $item->id }}"></td>
-                            <td>
-                                <a href="{{ route('akun.edit', $item->id_akun) }}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-edit"></i> EDIT
-                                </a>
-                            </td>
-                            <td>{{ $item->kode }}</td>
-                            <td>{{ $item->kegiatan }}</td>
-                            <td>
-                                @php
-                                $kategori = '-';
-                                $kode = intval(substr($item->kode, 0, 6));
+            <form action="{{ route('akun.bulkDelete') }}" method="POST" id="bulkDeleteForm">
+                @csrf
+                @method('DELETE')
 
-                                if ($kode >= 100000 && $kode <= 199999) {
-                                    $kategori='Pendapatan' ;
-                                    } elseif ($kode>= 200000 && $kode <= 299999) {
-                                        $kategori='Belanja' ;
-                                        }
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkAll"></th>
+                                <th>Edit</th>
+                                <th>Kode</th>
+                                <th>Kegiatan</th>
+                                <th>Kategori</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($akun as $item)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="ids[]" value="{{ $item->id_akun }}">
+                                </td>
+                                <td>
+                                    <a href="{{ route('akun.edit', $item->id_akun) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i> EDIT
+                                    </a>
+                                </td>
+                                <td>{{ $item->kode }}</td>
+                                <td>{{ $item->kegiatan }}</td>
+                                <td>
+                                    @php
+                                    $kategori = '-';
+                                    $kode = intval($item->kode);
+                                    if ($kode >= 100000 && $kode <= 199999) {
+                                        $kategori='Pendapatan' ;
+                                        } elseif ($kode>= 200000 && $kode <= 299999) {
+                                            $kategori='Belanja' ;
+                                            }
+                                            echo $kategori;
+                                            @endphp
+                                            </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-                                        echo $kategori;
-                                        @endphp
-                                        </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-3">
-                <a href="{{ route('akun.add') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-user-plus"></i> TAMBAH
-                </a>
-                <form action="{{ route('akun.bulkDelete') }}" method="POST" style="display:inline;" id="bulkDeleteForm">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data yang dipilih?')">
+                <div class="mt-3">
+                    <a href="{{ route('akun.add') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus"></i> TAMBAH
+                    </a>
+                    <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Apakah Anda yakin ingin menghapus data yang dipilih?')">
                         <i class="fas fa-trash"></i> HAPUS
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+{{-- Script Check All --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkAll = document.getElementById('checkAll');
+        const checkboxes = document.querySelectorAll('input[name="ids[]"]');
+        checkAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = checkAll.checked);
+        });
+    });
+</script>
+
 @endsection

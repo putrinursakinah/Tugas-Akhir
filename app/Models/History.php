@@ -9,7 +9,8 @@ class History extends Model
 {
     use HasFactory;
     protected $table = 'history';
+    protected $fillable = ['revisi', 'tanggal', 'waktu_pembuatan', 'data_anggaran_id_anggaran'];
     public function dataAnggaran() {
-        return $this->belongsTo(DataAnggaran::class, 'data_anggaran_id');
+        return $this->belongsTo(DataAnggaran::class, 'data_anggaran_id_anggaran');
     }
 }

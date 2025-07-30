@@ -17,12 +17,6 @@ return new class extends Migration
             $table->string('keterangan');
             $table->timestamps();
         });
-
-         DB::table('mode_kas')->insert([
-            ['keterangan' => 'Transaksi Tunai'],
-            ['keterangan' => 'Transaksi Bank'],
-            ['keterangan' => 'Penggeseran Uang (PU) Bank'],
-        ]);
     }
 
     /**

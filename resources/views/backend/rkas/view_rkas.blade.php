@@ -1,7 +1,6 @@
 @extends('admin.admin_master')
-@section('title','Rkas')
+@section('title', 'Rkas')
 @section('admin')
-
 
 <div class="container-fluid">
     <div class="card mb-3">
@@ -10,9 +9,9 @@
         </div>
         <div class="card-body">
             <p class="text-danger fw-bold">HISTORY RKAS/M : REVISI 3</p>
-            <a href="#" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> BUAT/HAPUS REVISI</a>
-            <a href="#" class="btn btn-sm btn-info"><i class="fas fa-print"></i> CETAK</a>
-            <a href="#" class="btn btn-sm btn-primary"><i class="fas fa-file-excel"></i> EXCEL</a>
+            <a href="{{ route('histori.view') }}" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> BUAT/HAPUS REVISI</a>
+            <a href="{{ route('rkas.cetak') }}" class="btn btn-sm btn-info"><i class="fas fa-print"></i> CETAK</a>
+            <a href="{{ route('rkas.download') }}" class="btn btn-sm btn-primary"><i class="fas fa-file-excel"></i> EXCEL</a>
         </div>
     </div>
 
@@ -31,63 +30,188 @@
                             <th>Harga Satuan</th>
                             <th>Jumlah</th>
                             <th>PD/SD</th>
-                            <th>Surplus/Defisit</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- KODE A - PENDAPATAN --}}
-                        <tr class="table-primary fw-bold">
-                            <td>A</td>
-                            <td>PENDAPATAN</td>
-                            <td colspan="6"></td>
-                            <td>
-                                <a href="{{ route('rkas.add') }}" class="btn btn-sm btn-success" title="Tambah Pendapatan">
-                                    <i class="fas fa-plus"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {{-- Anak-anak pendapatan --}}
-                        @foreach($pendapatan as $row)
+                        @foreach($kategori as $kategori)
                         <tr>
-                            <td class="text-primary font-weight-bold">{{ $row->kode }}</td>
-                            <td>
-                                <a href="#" class="text-primary font-weight-bold">{{ $row->uraian }}</a>
-                            </td>
-                            <td>{{ $row->vol }}</td>
-                            <td>{{ $row->satuan }}</td>
-                            <td>{{ $row->harga_satuan }}</td>
-                            <td class="text-primary font-weight-bold">{{ number_format($row->jumlah, 0, ',', '.') }}</td>
-                            <td>
-                                <a href="{{ route('komponen.rkas', $row->id) }}" class="btn btn-info btn-sm px-2 py-1" style="font-size: 0.8rem;" title="Tambah Komponen"><i class="fas fa-plus"></i></a>
-                                <a href="{{ route('rkas.edit', $row->id) }}" class="btn btn-success btn-sm px-2 py-1" style="font-size:0.8rem;" title="Edit"><i class="fas fa-edit"></i></a>
-                                <form action="{{ route('rkas.delete', $row->id) }}" method="POST" style="display:inline;">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm px-2 py-1" style="font-size:0.8rem;" title="Hapus"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </td>
-                        </tr>
-                         @endforeach
-
-                        {{-- Total Pendapatan --}}
-
-                        {{-- KODE B - BELANJA --}}
-                        <tr class="table-danger fw-bold">
-                            <td>B</td>
-                            <td>BELANJA</td>
-                            <td colspan="6"></td>
-                            <td>
-                                <a href="{{ route('rkas.add') }}" class="btn btn-sm btn-success" title="Tambah Belanja">
-                                    <i class="fas fa-plus"></i>
+                            <td class="text-danger font-weight-bold">{{ $kategori->id_kategori }}</td>
+                            <td class="text-danger font-weight-bold">{{ $kategori->nama_kategori }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="align-middle">
+                                @if(!$isLocked)
+                                <a href="{{ route('rkas.add', ['kategori_id' => $kategori->id_kategori]) }}" title="Tambah Data">
+                                    <i class="fas fa-plus text-success"></i>
                                 </a>
+                                @endif
                             </td>
                         </tr>
-                        {{-- Anak-anak belanja --}}
 
+                        @php $totalKategori = 0; @endphp
+
+                        @foreach($kegiatan as $keg)
+                        @if($keg->kategori_id_kategori == $kategori->id_kategori)
+                        @php
+                        $jumlah_kegiatan = 0;
+                        foreach($dataanggaran as $anggaran) {
+                        if($anggaran->kode_kegiatan_id_kegiatan == $keg->id_kegiatan) {
+                        $jumlah_kegiatan += $anggaran->jumlah;
+                        $totalKategori += $anggaran->jumlah;
+                        }
+                        }
+                        @endphp
+                        <tr>
+                            <td>{{ $keg->kode }}</td>
+                            <td>{{ $keg->kegiatan }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ number_format($jumlah_kegiatan, 0, ',', '.') }}</td>
+                            <td></td>
+                            <td>
+                                @if(!$isLocked)
+                                <a href="{{ route('kegiatan.edit', $keg->id_kegiatan) }}" title="Edit">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                
+                                <a href="{{ route('kegiatan.delete', $keg->id_kegiatan) }}" onclick="return confirm('Yakin hapus kegiatan?')" title="Hapus">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </a>
+                                @else
+                                <i class="fas fa-edit text-muted" title="Terkunci"></i>
+                                <i class="fas fa-trash-alt text-muted" title="Terkunci"></i>
+                                @endif
+                            </td>
+                        </tr>
+
+                        @foreach($komponen as $kom)
+                        @if($kom->kode_kegiatan_id_kegiatan == $keg->id_kegiatan)
+                        @php
+                        $jumlah_komponen = 0;
+                        foreach($dataanggaran as $anggaran) {
+                        if($anggaran->komponen_id_komponen == $kom->id_komponen) {
+                        $jumlah_komponen += $anggaran->jumlah;
+                        }
+                        }
+                        @endphp
+                        <tr>
+                            <td>{{ $kom->kode }}</td>
+                            <td>{{ $kom->uraian }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ number_format($jumlah_komponen, 0, ',', '.') }}</td>
+                            <td></td>
+                            <td>
+                                @if(!$isLocked)
+                                <a href="#" title="Edit">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                <a href="#" onclick="return confirm('Yakin hapus komponen?')" title="Hapus">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </a>
+                                @else
+                                <i class="fas fa-edit text-muted" title="Terkunci"></i>
+                                <i class="fas fa-trash-alt text-muted" title="Terkunci"></i>
+                                @endif
+                            </td>
+                        </tr>
+
+                        @foreach($kode_akun as $akun)
+                        @if($akun->id_akun == $kom->kode_akun_id_akun)
+                        @php
+                        $jumlah_akun = 0;
+                        foreach($dataanggaran as $anggaran) {
+                        if($anggaran->komponen_id_komponen == $kom->id_komponen) {
+                        $jumlah_akun += $anggaran->jumlah;
+                        }
+                        }
+                        @endphp
+                        <tr>
+                            <td>{{ $akun->kode }}</td>
+                            <td>{{ $akun->kegiatan }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ number_format($jumlah_akun, 0, ',', '.') }}</td>
+                            <td></td>
+                            <td>
+                                @if(!$isLocked)
+                                <a href="#" title="Edit">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                <a href="#" onclick="return confirm('Yakin hapus data?')" title="Hapus">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </a>
+                                @else
+                                <i class="fas fa-edit text-muted" title="Terkunci"></i>
+                                <i class="fas fa-trash-alt text-muted" title="Terkunci"></i>
+                                @endif
+                            </td>
+                        </tr>
+                        @endif
+                        @endforeach
+
+                        @foreach($dataanggaran as $anggaran)
+                        @if($anggaran->komponen_id_komponen == $kom->id_komponen)
+                        <tr>
+                            <td></td>
+                            <td>{{ $anggaran->uraian }}</td>
+                            <td>{{ $anggaran->vol }}</td>
+                            <td>{{ $anggaran->satuan }}</td>
+                            <td>{{ number_format($anggaran->harga_satuan, 0, ',', '.') }}</td>
+                            <td>{{ number_format($anggaran->jumlah, 0, ',', '.') }}</td>
+                            <td></td>
+                            <td>
+                                @if(!$isLocked)
+                                <a href="#" title="Edit">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </a>
+                                <a href="#" onclick="return confirm('Yakin hapus data?')" title="Hapus">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </a>
+                                @else
+                                <i class="fas fa-edit text-muted" title="Terkunci"></i>
+                                <i class="fas fa-trash-alt text-muted" title="Terkunci"></i>
+                                @endif
+                            </td>
+                        </tr>
+                        @endif
+                        @endforeach
+                        @endif
+                        @endforeach
+                        @endif
+                        @endforeach
+
+                        {{-- Baris Total Kategori --}}
+                        <tr class="bg-light font-weight-bold">
+                            <td colspan="5" class="text-right">Total {{ $kategori->nama_kategori }}</td>
+                            <td>{{ number_format($totalKategori, 0, ',', '.') }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
+                {{-- Tombol Simpan & Kunci --}}
+                @if($dataanggaran->count() > 0 && !$isLocked)
+                <form action="{{ route('rkas.lock') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-danger mt-3">Simpan & Kunci RKAS</button>
+                </form>
+                @elseif($isLocked)
+                <div class="alert alert-success mt-3">
+                    Data RKAS telah dikunci dan tidak dapat diedit.
+                </div>
+                @endif
+
             </div>
         </div>
     </div>
 </div>
+
 @endsection

@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('jenis_transaksi', function (Blueprint $table) {
             $table->id('id_transaksi');
             $table->string('keterangan');
+            $table->unsignedBigInteger('kategori_kas_id_kategorikas');
+            $table->foreign('kategori_kas_id_kategorikas')->references('id_kategorikas')->on('kategori_kas');
             $table->timestamps();
         });
     }

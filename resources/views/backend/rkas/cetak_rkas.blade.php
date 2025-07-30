@@ -3,7 +3,7 @@
 @section('admin')
 
 <div class="container-fluid">
-    <div class="card shadow mb-4 mt-4"> <!-- Menghapus card header -->
+    <div class="card shadow mb-4 mt-4">
         <div class="card-body">
             <div class="text-left mb-4">
                 <h3 class="text-primary">RINCIAN KERTAS KERJA RKAS</h3>
@@ -20,14 +20,13 @@
                         <th>Harga Satuan</th>
                         <th>Jumlah</th>
                         <th>PSBD</th>
-                        <th>Surplus/Defisit</th>
+                        <th>Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- Baris Pendapatan --}}
-                    @foreach($pendapatan as $row)
+                    @forelse($dataAnggaran as $row)
                     <tr>
-                        <td>{{ $row->kode_akun }}</td>
+                        <td>{{ $row->kode_akun ?? '-' }}</td>
                         <td>{{ $row->uraian }}</td>
                         <td>{{ $row->vol }}</td>
                         <td>{{ $row->satuan }}</td>
@@ -36,26 +35,16 @@
                         <td></td>
                         <td></td>
                     </tr>
-                    @endforeach
-
-                    {{-- Baris Belanja --}}
-                    @foreach($belanja as $row)
+                    @empty
                     <tr>
-                        <td>{{ $row->kode_akun }}</td>
-                        <td>{{ $row->uraian }}</td>
-                        <td>{{ $row->vol }}</td>
-                        <td>{{ $row->satuan }}</td>
-                        <td>{{ number_format($row->harga_satuan, 0, ',', '.') }}</td>
-                        <td>{{ number_format($row->jumlah, 0, ',', '.') }}</td>
-                        <td></td>
-                        <td></td>
+                        <td colspan="8" class="text-center">Tidak ada data RKAS yang ditemukan.</td>
                     </tr>
-                    @endforeach
+                    @endforelse
 
-                    {{-- Baris Surplus/Defisit --}}
+                    {{-- Total --}}
                     <tr>
-                        <td class="font-weight-bold" colspan="5">Total Surplus/Defisit</td>
-                        <td>{{ number_format($surplus, 0, ',', '.') }}</td>
+                        <td colspan="5" class="font-weight-bold text-end">Total</td>
+                        <td class="font-weight-bold">{{ number_format($total, 0, ',', '.') }}</td>
                         <td></td>
                         <td></td>
                     </tr>
@@ -72,13 +61,13 @@
 <style>
     @media print {
         body * {
-            visibility: hidden; /* Sembunyikan semua elemen */
+            visibility: hidden;
         }
         .container-fluid, .container-fluid * {
-            visibility: visible; /* Tampilkan hanya konten yang diinginkan */
+            visibility: visible;
         }
         .container-fluid {
-            position: absolute; /* Pastikan konten berada di posisi yang tepat */
+            position: absolute;
             left: 0;
             top: 0;
         }

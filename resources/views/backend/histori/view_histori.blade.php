@@ -44,6 +44,7 @@
             </div>
             <form action="{{ route('histori.store') }}" method="POST" style="display:inline;">
                 @csrf
+                <input type="hidden" name="id_anggaran" value="{{ $dataAnggaran->id_anggaran }}">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-copy"></i> BUAT HISTORY REVISI {{ $nextRevisi }}
                 </button>
