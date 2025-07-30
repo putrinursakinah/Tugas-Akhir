@@ -7,6 +7,10 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 
 class DataAnggaranExport implements FromCollection
 {
+
+    public function __construct(){
+        
+    }
     /**
     * @return \Illuminate\Support\Collection
     */

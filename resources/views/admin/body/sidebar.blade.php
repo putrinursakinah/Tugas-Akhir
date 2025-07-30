@@ -18,9 +18,9 @@
              @csrf
              <label for="sidebarTahun" class="text-white small">Set Tahun</label>
              <select name="tahun" id="sidebarTahun" class="form-control form-control-sm" onchange="this.form.submit()">
-                 @foreach(range(date('Y'), date('Y') - 5) as $year)
-                 <option value="{{ $year }}" {{ session('tahun_aktif', date('Y')) == $year ? 'selected' : '' }}>
-                     {{ $year }}
+                 @foreach($tahunAjaranList as $item)
+                 <option value="{{ $item->tahun }}" {{ session('tahun_aktif') == $item->tahun ? 'selected' : '' }}>
+                     {{ $item->tahun }}
                  </option>
                  @endforeach
              </select>
@@ -70,6 +70,9 @@
                  </a>
                  <a class="collapse-item {{ request()->is('siswa/view') ? 'active' : '' }}" href="{{ url('/siswa/view') }}">
                      Siswa
+                 </a>
+                 <a class="collapse-item {{ request()->is('tahun/view') ? 'active' : '' }}" href="{{ url('/tahun/view') }}">
+                     Tahun Ajaran
                  </a>
              </div>
          </div>

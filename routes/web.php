@@ -18,6 +18,7 @@ use App\Http\Controllers\PaguSppController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KepsekController;
+use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\KomponenController;
 
 /*
@@ -49,7 +50,8 @@ Route::middleware([
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/kepsek/dashboard', [KepsekController::class, 'index'])->name('kepsek.dashboard');
     Route::prefix('tahun_ajaran')->group(function () {
-        Route::post('/set-tahun', [TahunAjaranKodeKegiatanController::class, 'store'])->name('tahun.store');
+        Route::get('/set-tahun', [TahunAjaranKodeKegiatanController::class, 'index'])->name('set-tahun');
+        Route::post('/set-tahun', [TahunAjaranKodeKegiatanController::class, 'store']);
     });
 });
 
@@ -208,10 +210,21 @@ Route::middleware([
         Route::post('/{akun_id}/detail', [DataAnggaranController::class, 'detailStore'])->name('rkas.detailStore');
         Route::get('/edit/{id}', [DataAnggaranController::class, 'edit'])->name('rkas.edit');
         Route::put('/update/{id}', [DataAnggaranController::class, 'update'])->name('rkas.update');
-        Route::get('/cetak', [DataAnggaranController::class, 'cetak'])->name('rkas.cetak');
-        Route::get('/download', [DataAnggaranController::class, 'downloadExcel'])->name('rkas.download');
+        Route::get('/cetak/{type}', [DataAnggaranController::class, 'cetak'])->name('rkas.cetak');
         Route::delete('/{id}', [DataAnggaranController::class, 'destroy'])->name('rkas.delete');
         Route::post('/lock', [DataAnggaranController::class, 'lock'])->name('rkas.lock');
+    });
+});
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::prefix('tahun')->group(function () {
+        Route::get('/view', [TahunAjaranController::class, 'index'])->name('tahun.view');
+        Route::post('/store', [TahunAjaranController::class, 'store'])->name('tahun.store');
+        Route::post('/set-aktif/{id}', [TahunAjaranController::class, 'setAktif'])->name('tahun.set-aktif');
     });
 });
 
