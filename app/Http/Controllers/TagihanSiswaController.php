@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\JenisBiaya;
 use App\Models\Kelas;
 use App\Models\KelasHasSiswa;
+use App\Http\Requests\TagihanGenerateRequest;
 
 class TagihanSiswaController extends Controller
 {
@@ -17,45 +18,26 @@ class TagihanSiswaController extends Controller
     public function index()
     {
         $tagihan = TagihanSiswa::with('kelasHasSiswa.siswa', 'kelasHasSiswa.kelas', 'jenisBiaya')->get();
-
         return view('backend.tagihan.view_tagihan', compact('tagihan'));
     }
 
     public function generatePage(Request $request)
     {
-        $jenisBiayaList = JenisBiaya::all();
+        $jenisBiayaList = TagihanSiswaRepository::getJenisBiayaList();
+        $kelasList = TagihanSiswaRepository::getKelasList();
 
-        // Ambil daftar kelas unik dari tabel kelas
-        $kelasList = Kelas::pluck('nama', 'id_kelas');
-
-        // Ambil semua data kelas_has_siswa dan eager load relasi siswa dan kelas
         $siswaList = [];
 
         if ($request->filled('kelas')) {
-            $siswaList = KelasHasSiswa::with(['siswa', 'kelas'])
-                ->where('kelas_id_kelas', $request->kelas)
-                ->get();
+            $siswaList = TagihanSiswaRepository::getSiswaByKelas($request->kelas);
         }
 
-        return view('backend.tagihan.generate_tagihan', compact('kelasList', 'jenisBiayaList', 'siswaList'));
+        return view('backend.tagihan.generate_tagihan', compact('jenisBiayaList', 'kelasList', 'siswaList'));
     }
 
-    public function generate(Request $request)
+    public function generate(TagihanGenerateRequest $request)
     {
-        $request->validate([
-            'jenis_biaya' => 'required|exists:jenis_biaya,id_jenisbiaya',
-            'siswa_ids' => 'required|array',
-        ]);
-
-        foreach ($request->siswa_ids as $id_kelashassiswa) {
-            TagihanSiswa::create([
-                'tgl_tagihan' => now(),
-                'status' => 'Belum Lunas',
-                'jenis_biaya_id_jenisbiaya' => $request->jenis_biaya,
-                'kelas_has_siswa_id_kelashassiswa' => $id_kelashassiswa,
-            ]);
-        }
-
+        TagihanSiswaRepository::generate($request->siswa_ids, $request->jenis_biaya);
 
         return redirect()->route('tagihan.view')->with('success', 'Tagihan berhasil digenerate.');
     }
@@ -69,7 +51,7 @@ class TagihanSiswaController extends Controller
 
         return response()->json($siswaList);
     }
-    
+
 
     /**
      * Show the form for creating a new resource.
@@ -88,16 +70,8 @@ class TagihanSiswaController extends Controller
             'jenis_biaya' => 'required|exists:jenis_biaya,id_jenisbiaya',
             'siswa_ids' => 'required|array',
         ]);
-
-
-        foreach ($request->siswa_ids as $id_kelashassiswa) {
-            TagihanSiswa::create([
-                'tgl_tagihan' => now(),
-                'status' => 'Belum Lunas',
-                'jenis_biaya_id_jenisbiaya' => $request->jenis_biaya,
-                'kelas_has_siswa_id_kelashassiswa' => $id_kelashassiswa,
-            ]);
-        }
+        TagihanSiswaRepository::generateTagihan($request->siswa_ids, $request->jenis_biaya);
+        
         return redirect()->route('tagihan.view')->with('success', 'Tagihan berhasil digenerate.');
     }
 
