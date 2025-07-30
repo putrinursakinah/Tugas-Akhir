@@ -8,6 +8,9 @@ use App\Exports\SiswaExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaTemplateExport;
+use App\Http\Requests\SiswaRequest;
+use App\Http\Requests\SiswaUpdateRequest;
+use App\Http\Controllers\SiswaRepository;
 
 class SiswaController extends Controller
 {
@@ -26,23 +29,14 @@ class SiswaController extends Controller
      */
     public function create()
     {
-
         return view('backend.siswa.add_siswa');
     }
 
     /**
      * Simpan siswa baru ke database.
      */
-    public function store(Request $request)
+    public function store(SiswaRequest $request)
     {
-        $request->validate([
-            'nis' => 'required|unique:siswa,nis',
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string|max:255',
-            'telepon' => 'required|string|max:20',
-            'angkatan' => 'required|digits:4',
-        ]);
-
         Siswa::create([
             'nis' => $request->nis,
             'nama' => $request->nama,
@@ -51,32 +45,12 @@ class SiswaController extends Controller
             'angkatan' => $request->angkatan,
         ]);
 
-
         return redirect()->route('siswa.view')->with('success', 'Siswa berhasil ditambahkan.');
     }
 
     public function exportExcel()
     {
         return Excel::download(new SiswaExport, 'data_siswa.xlsx');
-    }
-
-    public function importExcel(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
-        ]);
-
-        try {
-            Excel::import(new SiswaImport, $request->file('file'));
-            return back()->with('success', 'Data siswa berhasil diimport!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal import: ' . $e->getMessage());
-        }
-    }
-
-    public function downloadTemplate()
-    {
-        return Excel::download(new SiswaTemplateExport, 'template_siswa.xlsx');
     }
 
     public function show(string $id)
@@ -90,24 +64,9 @@ class SiswaController extends Controller
         return view('backend.siswa.edit_siswa', compact('siswa'));
     }
 
-    public function update(Request $request, string $id)
+    public function update(SiswaUpdateRequest $request, string $id)
     {
-        $request->validate([
-            'nis' => 'required|unique:siswa,nis,' . $id . ',id_siswa',
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string|max:255',
-            'telepon' => 'required|string|max:20',
-            'angkatan' => 'required|digits:4',
-        ]);
-
-        $siswa = Siswa::findOrFail($id);
-        $siswa->update([
-            'nis' => $request->nis,
-            'nama' => $request->nama,
-            'alamat' => $request->alamat,
-            'telepon' => $request->telepon,
-            'angkatan' => $request->angkatan,
-        ]);
+        SiswaRepository::update($request->validated(), $id);
         return redirect()->route('siswa.view')->with('success', 'Data siswa berhasil diperbarui.');
     }
 
