@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\DataAnggaranRepository;
+use App\Http\Controllers\PrintGenerator;
 use Illuminate\Http\Request;
 use App\Models\DataAnggaran;
 use App\Models\KodeAkun;
@@ -223,19 +224,13 @@ class DataAnggaranController extends Controller
         ]);
 
 
-        // return redirect()->route('rkas.view')->with('success', 'Data berhasil disimpan');
+         return redirect()->route('rkas.view')->with('success', 'Data berhasil disimpan');
     }
-    public function cetak()
+    public function cetak($type)
     {
-        $dataAnggaran = DataAnggaran::with([
-            'komponen',
-            'kegiatan',
-            'parent',
-        ])->get();
-
-        $total = $dataAnggaran->sum('jumlah');
-
-        return view('backend.rkas.cetak_rkas', compact('dataAnggaran', 'total'));
+       
+       $printer=PrintGenerator::selectPrinter($type);
+        return $printer->print();
     }
 
     private function calculateSurplus($pendapatan, $belanja)

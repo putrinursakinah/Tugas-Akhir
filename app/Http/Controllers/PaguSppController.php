@@ -26,7 +26,7 @@ class PaguSppController extends Controller
         // Ambil semua data yang sudah dimapping ke pagu_spp
         $paguSpp = PaguSpp::with('anggaran')->get();
 
-        return view('backend.pagu.view_pagu', compact('dataAnggaran', 'paguSpp'));
+         return view('backend.pagu.view_pagu', compact('dataAnggaran', 'paguSpp'));
     }
 
     /**

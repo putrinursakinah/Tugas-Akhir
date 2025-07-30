@@ -22,17 +22,13 @@ class DataAnggaranRequest extends FormRequest
     public function rules(): array
     {
         return
+
             [
+                'akun_id' => 'required|exists:kode_akun,id_akun',
                 'kegiatan_id' => 'required|exists:kode_kegiatan,id_kegiatan',
                 'komponen_kode' => 'required|string|max:50',
-                'komponen_uraian' => 'required|string|max:255',
-                'akun_id' => 'required|exists:kode_akun,id_akun',
 
-                'detail_uraian' => 'required|string|max:255',
-                'detail_vol' => 'required|numeric|min:1',
-                'detail_satuan' => 'nullable|string|max:20',
-                'detail_harga_satuan' => 'required|numeric|min:1',
-                'detail_jumlah' => 'required|numeric|min:1',
+
             ];
     }
 }

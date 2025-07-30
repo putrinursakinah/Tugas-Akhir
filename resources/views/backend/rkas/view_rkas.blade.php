@@ -10,8 +10,8 @@
         <div class="card-body">
             <p class="text-danger fw-bold">HISTORY RKAS/M : REVISI 3</p>
             <a href="{{ route('histori.view') }}" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> BUAT/HAPUS REVISI</a>
-            <a href="{{ route('rkas.cetak') }}" class="btn btn-sm btn-info"><i class="fas fa-print"></i> CETAK</a>
-            <a href="{{ route('rkas.download') }}" class="btn btn-sm btn-primary"><i class="fas fa-file-excel"></i> EXCEL</a>
+            <a href="{{ route('rkas.cetak',['type'=>'pdf']) }}" class="btn btn-sm btn-info"><i class="fas fa-print"></i> CETAK</a>
+            <a target="_blank" href="{{ route('rkas.cetak',['type'=>'excel']) }}" class="btn btn-sm btn-primary"><i class="fas fa-file-excel"></i> EXCEL</a>
         </div>
     </div>
 
