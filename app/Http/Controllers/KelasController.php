@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use App\Models\Siswa;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
+use Illuminate\Support\Facades\DB;
 
 class KelasController extends Controller
 {
@@ -60,7 +61,7 @@ class KelasController extends Controller
 
         // Ambil siswa yang terhubung dengan kelas ini melalui tabel pivot
         $siswa = $kelas->siswa; // relasi manyToMany melalui kelas_has_siswa
-       
+
         return view('backend.kelas.peserta_kelas', compact('kelas', 'siswa'));
     }
 
@@ -85,7 +86,16 @@ class KelasController extends Controller
 
     public function getSiswaByAngkatan($angkatan)
     {
-        $siswa = Siswa::where('angkatan', $angkatan)->get(['id_siswa', 'nama', 'nis', 'alamat']);
+        $siswaSudahPunyaKelas = DB::table('kelas_has_siswa')
+            ->join('kelas', 'kelas_has_siswa.kelas_id_kelas', '=', 'kelas.id_kelas')
+            ->where('kelas.tahun_ajaran', 'like', "%$angkatan%") // atau cocokkan formatnya jika perlu
+            ->pluck('siswa_id_siswa')
+            ->toArray();
+
+        // Ambil siswa dengan angkatan yg sesuai dan belum masuk kelas pada tahun itu
+        $siswa = Siswa::where('angkatan', $angkatan)
+            ->whereNotIn('id_siswa', $siswaSudahPunyaKelas)
+            ->get(['id_siswa', 'nama', 'nis as nis', 'alamat']);
         return response()->json($siswa);
     }
 

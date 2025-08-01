@@ -40,9 +40,10 @@ class DataAnggaran extends Model
         return $this->hasMany(DataAnggaran::class, 'parent_id');
     }
     public function paguSpp()
-    {
-        return $this->hasMany(PaguSpp::class, 'data_anggaran_id_anggaran', 'id_anggaran');
-    }
+{
+    return $this->hasMany(PaguSpp::class, 'id_anggaran', 'id_anggaran');
+}
+
     public function realisasi()
     {
         return $this->hasMany(Realiasi::class, 'data_anggaran_id_anggaran', 'id_anggaran');

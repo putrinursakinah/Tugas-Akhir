@@ -65,11 +65,7 @@
                             <th>Tagihan</th>
                             <th>Nominal</th>
                             <th>Status</th>
-                            <th class="text-right">
-                                <a href="{{ route('pembayaran.tambah', $siswa->id_siswa) }}" class="btn btn-success btn-sm">
-                                    <i class="fas fa-plus"></i> Tambah Pembayaran
-                                </a>
-                            </th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +75,11 @@
                             <td>{{ $tagihan->jenisBiaya->nama }}</td>
                             <td>Rp {{ number_format($tagihan->jenisBiaya->nominal, 0, ',', '.') }}</td>
                             <td>{{ $tagihan->status }}</td>
-                            <td></td>
+                            <td class="text-right">
+                                <a href="{{ route('pembayaran.add', ['siswa_id' => $siswa->id_siswa]) }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Bayar
+                                </a>
+                            </td>
                         </tr>
                         @empty
                         <tr>

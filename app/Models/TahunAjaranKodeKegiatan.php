@@ -17,6 +17,6 @@ class TahunAjaranKodeKegiatan extends Model
     }
      public function paguSpp()
     {
-        return $this->hasMany(PaguSpp::class, 'id_tahun_ajaran', 'id_tahun_ajaran_kode_kegiatan');
+        return $this->hasMany(PaguSpp::class, 'tahun_ajaran_kode_kegiatan', 'id_tahun_ajaran_kode_kegiatan');
     }
 }

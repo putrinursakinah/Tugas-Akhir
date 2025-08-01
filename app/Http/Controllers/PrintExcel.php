@@ -9,7 +9,7 @@ class PrintExcel implements Printable
 
     public function print(){
         
-       return Excel::download(new DataAnggaranExport, 'rkdddas.xlsx'); 
+       return Excel::download(new DataAnggaranExport, 'rkas.xlsx'); 
       
     }
 

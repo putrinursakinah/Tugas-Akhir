@@ -13,7 +13,7 @@ class Pembayaran extends Model
     protected $fillable = ['tgl_pembayaran', 'tagihan_siswa_id_tagihan', 'transaksi_id_transaksi'];
     public function tagihanSiswa()
     {
-        return $this->belongsTo(TagihanSiswa::class, 'tagihan_siswa_id_tagihan');
+        return $this->belongsTo(TagihanSiswa::class, 'tagihan_siswa_id_tagihan', 'id_tagihan');
     }
     public function transaksi()
     {

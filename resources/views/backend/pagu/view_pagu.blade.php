@@ -21,8 +21,20 @@
                         @foreach($paguSpp as $index => $spp)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $spp->anggaran->uraian }}</td>
-                            <td>{{ number_format($spp->anggaran->jumlah, 0, ',', '.') }}</td>
+                            <td>
+                                @if ($spp->anggaran)
+                                {{ $spp->anggaran->uraian }}
+                                @else
+                                <span class="text-danger">Data anggaran tidak ditemukan (ID: {{ $spp->id_anggaran }})</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($spp->anggaran)
+                                {{ number_format($spp->anggaran->jumlah, 0, ',', '.') }}
+                                @else
+                                -
+                                @endif
+                            </td>
                             <td>
                                 <!-- Kosongkan atau beri tombol hapus jika perlu -->
                             </td>

@@ -242,6 +242,8 @@ Route::middleware([
         Route::get('/cetak/{id}', [TransaksiController::class, 'cetak'])->name('transaksi.cetak');
         Route::get('/pagu', [TransaksiController::class, 'pagu'])->name('transaksi.pagu');
         Route::get('/get-dataanggaran-by-kategori/{id}', [TransaksiController::class, 'getDataAnggaranByKategori']);
+        Route::delete('/delete-selected', [TransaksiController::class, 'destroy'])->name('transaksi.delete-selected');
+        Route::get('/export-excel', [\App\Http\Controllers\TransaksiController::class, 'exportExcel'])->name('transaksi.export');
     });
 });
 
@@ -252,6 +254,10 @@ Route::middleware([
 ])->group(function () {
     Route::prefix('laporan')->group(function () {
         Route::get('/view', [LaporanController::class, 'index'])->name('laporan.realisasi');
+        Route::get('/rkas', [DataAnggaranController::class, 'rkas'])->name('laporan.rkas');
+        Route::get('/spp', [LaporanController::class, 'laporanRealisasiSPP'])->name('laporan.spp');
+        Route::get('/realisasi/pdf', [LaporanController::class, 'cetakPdf'])->name('laporan.realisasi.pdf');
+        Route::get('/realisasi/excel', [LaporanController::class, 'exportExcel'])->name('laporan.realisasi.excel');
 
         // Route::get('/view', [LaporanController::class, 'index'])->name('laporan.view');
         // Route::get('/add', [LaporanController::class, 'create'])->name('laporan.add');

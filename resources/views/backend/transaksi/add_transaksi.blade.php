@@ -20,7 +20,7 @@
                         <div class="form-group row">
                             <label class="col-md-4 col-form-label font-weight-bold">Mode Kas</label>
                             <div class="col-md-8">
-                                <select class="form-control" name="mode_kas_id" id="modeKasSelect">
+                                <select class="form-control" name="mode_kas_id" id="modeKasSelect2">
                                     <option value="">--Pilih Mode--</option>
                                     @foreach($modeKasList as $kas)
                                     <option value="{{ $kas->id_mode }}">{{ $kas->keterangan }}</option>
@@ -123,35 +123,15 @@
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    
+
     $(document).ready(function() {
         // Event ketika Mode Kas diubah
-        $('#modeKasSelect').on('change', function() {
-            var modeKasId = $(this).val();
-
-            // Kosongkan dropdown
-            $('#kategoriTransaksiSelect').html('<option value="">--Pilih Kategori--</option>');
-            $('#jenisTransaksiSelect').html('<option value="">--Pilih Jenis--</option>');
-            $('#dataAnggaranSelect').html('<option value="">--Pilih Kategori Terlebih Dahulu--</option>');
-
-            if (modeKasId) {
-                // Ambil kategori berdasarkan Mode Kas
-                $.get('/transaksi/get-kategori-by-mode/' + modeKasId, function(data) {
-                    $.each(data, function(i, kategori) {
-                        $('#kategoriTransaksiSelect').append('<option value="' + kategori.id_kategorikas + '">' + kategori.keterangan + '</option>');
-                    });
-                });
-
-                // Ambil semua jenis transaksi
-                $.get('/transaksi/get-jenis-transaksi', function(data) {
-                    $.each(data, function(i, jenis) {
-                        $('#jenisTransaksiSelect').append('<option value="' + jenis.id_transaksi + '">' + jenis.keterangan + '</option>');
-                    });
-                });
-            }
-        });
-
+      
         // Event ketika Kategori Transaksi diubah
         $('#kategoriTransaksiSelect').on('change', function() {
+           console.log('Kategori Transaksi diubah');
+
             var kategoriId = $(this).val();
             var $dataAnggaranSelect = $('#dataAnggaranSelect');
 

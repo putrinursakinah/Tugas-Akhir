@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+
 use App\Models\DataAnggaran;
-use App\Models\Realiasi;
-use App\Models\Realisasi;
+use App\Models\Kategori;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $pendapatanId = Kategori::where('nama_kategori', 'pendapatan')->value('id_kategori');
+        $belanjaId = Kategori::where('nama_kategori', 'belanja')->value('id_kategori');
         // Ambil semua anggaran pendapatan
         $rencanaPendapatan = DataAnggaran::whereHas('kegiatan.kategori', function ($q) {
             $q->where('nama_kategori', 'Pendapatan');
         })->sum('jumlah');
 
         // Ambil semua realisasi pendapatan
-        $realisasiPendapatan = Realiasi::whereHas('anggaran.kegiatan.kategori', function ($q) {
-            $q->where('nama_kategori', 'Pendapatan');
-        })->sum('jumlah');
+        $realisasiPendapatan = DataAnggaran::whereHas('kegiatan.kategori', function ($q) {
+            $q->where('nama_kategori', 'pendapatan');
+        })->with('transaksi')->get()->flatMap->transaksi->sum('debet');
 
         // Ambil semua anggaran belanja
         $rencanaBelanja = DataAnggaran::whereHas('kegiatan.kategori', function ($q) {
@@ -27,19 +28,13 @@ class DashboardController extends Controller
         })->sum('jumlah');
 
         // Ambil semua realisasi belanja
-        $realisasiBelanja = Realiasi::whereHas('anggaran.kegiatan.kategori', function ($q) {
-            $q->where('nama_kategori', 'Belanja');
-        })->sum('jumlah');
+        $realisasiBelanja = DataAnggaran::whereHas('kegiatan.kategori', function ($q) {
+            $q->where('nama_kategori', 'belanja');
+        })->with('transaksi')->get()->flatMap->transaksi->sum('debet');
 
         // Hitung persentase realisasi pendapatan
-        $persenPendapatan = $rencanaPendapatan > 0
-            ? ($realisasiPendapatan / $rencanaPendapatan) * 100
-            : 0;
-
-        // Hitung persentase realisasi belanja
-        $persenBelanja = $rencanaBelanja > 0
-            ? ($realisasiBelanja / $rencanaBelanja) * 100
-            : 0;
+        $persenPendapatan = $rencanaPendapatan > 0 ? ($realisasiPendapatan / $rencanaPendapatan) * 100 : 0;
+        $persenBelanja = $rencanaBelanja > 0 ? ($realisasiBelanja / $rencanaBelanja) * 100 : 0;
 
         return view('admin.index', compact(
             'rencanaPendapatan',
