@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TransaksiExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use App\Models\ModeKas;
@@ -129,11 +131,23 @@ class TransaksiController extends Controller
         //
     }
 
+    public function exportExcel()
+    {
+        return Excel::download(new TransaksiExport, 'data_transaksi.xlsx');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request)
     {
-        //
+        $ids = $request->input('ids');
+
+        if ($ids) {
+            Transaksi::whereIn('id_transaksi', $ids)->delete();
+            return redirect()->back()->with('success', 'Data berhasil dihapus.');
+        }
+
+        return redirect()->back()->with('error', 'Tidak ada data yang dipilih.');
     }
 }

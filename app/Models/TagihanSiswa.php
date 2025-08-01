@@ -38,7 +38,7 @@ class TagihanSiswa extends Model
     }
     public function kelasHasSiswa()
     {
-        return $this->belongsTo(KelasHasSiswa::class, 'kelas_has_siswa_id_kelashassiswa');
+        return $this->belongsTo(KelasHasSiswa::class, 'kelas_has_siswa_id_kelashassiswa', 'id_kelashassiswa');
     }
 
 }

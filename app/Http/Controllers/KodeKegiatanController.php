@@ -14,7 +14,17 @@ class KodeKegiatanController extends Controller
      */
     public function index()
     {
-        $kegiatan = KodeKegiatan::all();
+        $tahunAktif = session('tahun_aktif');
+
+        $tahunAjaran = TahunAjaranKodeKegiatan::where('tahun', $tahunAktif)->first();
+
+        $kegiatan = [];
+
+        if ($tahunAjaran) {
+            $kegiatan = KodeKegiatan::where('id_tahun_ajaran_kode_kegiatan', $tahunAjaran->id_tahun_ajaran_kode_kegiatan)
+                ->with('kategori') // agar akses ke $item->kategori->nama_kategori
+                ->get();
+        }
         return view('backend.kegiatan.view_kegiatan', compact('kegiatan'));
     }
 
@@ -23,9 +33,15 @@ class KodeKegiatanController extends Controller
      */
     public function create()
     {
-
         $kategoriList = Kategori::all();
-        return view('backend.kegiatan.add_kegiatan', compact('kategoriList'));
+        $tahunAktif = session('tahun_aktif');
+        $tahun = TahunAjaranKodekegiatan::where('tahun', $tahunAktif)->first();
+        $kegiatanList = [];
+
+        if ($tahun) {
+            $kegiatan = KodeKegiatan::where('id_tahun_ajaran_kode_kegiatan', $tahun->id_tahun_ajaran_kode_kegiatan)->get();
+        }
+        return view('backend.kegiatan.add_kegiatan', compact('kategoriList', 'kegiatanList'));
     }
 
     /**

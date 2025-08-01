@@ -52,7 +52,7 @@
 
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const angkatanSelect = document.getElementById('angkatan');
@@ -105,4 +105,4 @@
         });
     });
 </script>
-@endpush
+@endsection

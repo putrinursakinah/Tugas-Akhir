@@ -38,7 +38,7 @@
                                 </td>
                                 <td>{{ $item->kode }}</td>
                                 <td>{{ $item->kegiatan }}</td>
-                                <td>{{ $item->kategori_kegiatan }}</td>
+                                <td>{{ $item->kategori->nama_kategori ?? '-'}}</td>
                             </tr>
                             @endforeach
                         </tbody>

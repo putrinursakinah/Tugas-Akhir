@@ -3,105 +3,141 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use App\Models\TahunAjaran;
 use App\Models\DataAnggaran;
+use App\Models\Kategori;
+use App\Models\KodeAkun;
+use App\Models\KodeKegiatan;
+use App\Models\Komponen;
 use App\Models\Transaksi;
+use App\Models\PaguSpp;
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RealisasiExport;
 
 class LaporanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
+
+
     public function index(Request $request)
-   {
-    $periodeBulan = $request->input('periode_bulan') ?? Carbon::now()->translatedFormat('F Y');
-        $tanggalLaporan = $request->input('tanggal_laporan') ?? Carbon::now()->format('Y-m-d');
+    {
+        if (auth()->user()->role !== 'bendahara' && auth()->user()->role !== 'kepala sekolah') {
+            abort(403, 'Unauthorized');
+        }
+        $bulan = $request->get('bulan', Carbon::now()->month);
+        $kategori = Kategori::all();
+        $kegiatan = KodeKegiatan::all();
+        $komponen = Komponen::all();
+        $kode_akun = KodeAkun::all();
+        $dataanggaran = DataAnggaran::with([
+            'transaksi' => function ($q) use ($bulan) {
+                $q->whereMonth('tanggal', $bulan);
+            },
+            'paguSpp',
+            'kegiatan'
+        ])->get();
+        $bulan = $request->get('bulan', Carbon::now()->month); // default: bulan ini
 
-        // Parse bulan dan tahun dari inputan
-        $bulan = Carbon::parse('01 ' . $periodeBulan)->month;
-        $tahun = Carbon::parse('01 ' . $periodeBulan)->year;
+        $anggarans = DataAnggaran::with([
+            'transaksi' => function ($q) use ($bulan) {
+                $q->whereMonth('tanggal', $bulan);
+            },
+            'paguSpp',
+            'kegiatan'
+        ])->get();
+        //dd($anggarans);
+        return view('backend.laporan.view_laporan', compact('kategori', 'kegiatan', 'komponen', 'kode_akun', 'dataanggaran', 'anggarans', 'bulan'));
+    }
 
-        // Ambil semua data anggaran (hanya akun level terbawah jika ada struktur bertingkat)
-        $rkas = DataAnggaran::with('transaksi')->get();
+    public function laporanRealisasiSPP()
+    {
+        $tahunAjaranId = 1; // nanti bisa dibuat dinamis
+        $paguItems = PaguSPP::with(['anggaran', 'tahunAjaran'])->get();
 
-        // Map dan hitung realisasi
-        $rkas = $rkas->map(function ($item) use ($bulan, $tahun) {
-            $pagu = $item->jumlah ?? 0;
+        $laporan = [];
 
-            $transaksiBulanIni = $item->transaksi
-                ->where('tanggal', '>=', Carbon::create($tahun, $bulan, 1)->startOfMonth())
-                ->where('tanggal', '<=', Carbon::create($tahun, $bulan, 1)->endOfMonth());
+        foreach ($paguItems as $pagu) {
+            $paguJumlah = $pagu->anggaran->jumlah ?? 0;
+            $realisasiBulanan = [];
 
-            $transaksiSebelumnya = $item->transaksi
-                ->where('tanggal', '<', Carbon::create($tahun, $bulan, 1)->startOfMonth());
+            for ($bulan = 1; $bulan <= 12; $bulan++) {
+                $start = Carbon::create(null, $bulan, 1)->startOfMonth();
+                $end = Carbon::create(null, $bulan, 1)->endOfMonth();
 
-            $realisasiLalu = $transaksiSebelumnya->sum('kredit');
-            $realisasiIni = $transaksiBulanIni->sum('kredit');
-            $totalRealisasi = $realisasiLalu + $realisasiIni;
+                $realisasi = Transaksi::whereBetween('tanggal', [$start, $end])
+                    ->whereHas('pembayaran.tagihanSiswa.KelasHasSiswa.Kelas', function ($q) use ($tahunAjaranId) {
+                        $q->where('tahun_ajaran', $tahunAjaranId);
+                    })
+                    ->whereHas('spp')
+                    ->sum('debet');
 
-            $sisa = $pagu - $totalRealisasi;
-            $persen = $pagu > 0 ? ($totalRealisasi / $pagu) * 100 : 0;
+                $realisasiBulanan[$bulan] = $realisasi;
+            }
 
-            return (object) [
-                'kode_akun' => $item->kodeAkun->kode ?? '-',
-                'uraian' => $item->uraian,
-                'pagu_anggaran' => $pagu,
-                'realisasi_s_d_bulan_lalu' => $realisasiLalu,
-                'realisasi_s_d_bulan_ini' => $totalRealisasi,
-                'pengembalian' => 0, // jika belum ada fitur pengembalian
+            $totalRealisasi = array_sum($realisasiBulanan);
+            $sisa = $paguJumlah - $totalRealisasi;
+            $persen = $paguJumlah > 0 ? ($totalRealisasi / $paguJumlah) * 100 : 0;
+
+            $laporan[] = [
+                'kode_kegiatan' => $pagu->tahunAjaranKodeKegiatan->kode_kegiatan ?? '-',
+                'uraian' => $pagu->anggaran->uraian ?? '-',
+                'pagu_anggaran' => $paguJumlah,
+                'realisasi_bulanan' => $realisasiBulanan,
+                'total_realisasi' => $totalRealisasi,
                 'sisa_anggaran' => $sisa,
-                'persentase_realisasi' => $persen
+                'persentase' => round($persen, 2),
             ];
-        });
+        }
 
-        return view('backend.laporan.view_laporan', compact('rkas', 'periodeBulan', 'tanggalLaporan'));
+        //return view('backend.laporan.View_laporan', compact('laporan'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function rkas()
     {
-        //
+        $kategori = Kategori::all();
+        $kegiatan = KodeKegiatan::all();
+        $komponen = Komponen::all();
+        $kode_akun = KodeAkun::all();
+        $dataanggaran = DataAnggaran::all();
+
+        return view('backend.laporan.view_laporan', compact(
+            'kategori',
+            'kegiatan',
+            'komponen',
+            'kode_akun',
+            'dataanggaran'
+        ));
+    }
+    public function cetakPdf(Request $request)
+    {
+        $bulan = $request->bulan ?? now()->month;
+
+        // Ambil data yang sama seperti tampilan biasa
+        $data = $this->getLaporanData($bulan); // buat method ini agar bisa digunakan bersama
+
+        $pdf = Pdf::loadView('backend.laporan.realisasi_pdf', $data);
+        return $pdf->download("laporan-realisasi-spp-{$bulan}.pdf");
+    }
+    public function exportExcel(Request $request)
+    {
+        $bulan = $request->bulan ?? now()->month;
+        return Excel::download(new RealisasiExport($bulan), "laporan-realisasi-spp-{$bulan}.xlsx");
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    private function getLaporanData($bulan)
     {
-        //
-    }
+        $kategori = Kategori::all();
+        $kegiatan = KodeKegiatan::all();
+        $komponen = Komponen::all();
+        $kode_akun = KodeAkun::all();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // Ambil semua data anggaran dengan transaksi di bulan yang dipilih
+        $dataanggaran = \App\Models\DataAnggaran::with(['transaksi' => function ($q) use ($bulan) {
+            $q->whereMonth('tanggal', $bulan);
+        }])->get();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return compact('bulan', 'kategori', 'kegiatan', 'komponen', 'kode_akun', 'dataanggaran');
     }
 }

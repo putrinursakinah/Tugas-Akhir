@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Spp extends Model
 {
     use HasFactory;
+    protected $table = 'spp';
     protected $primaryKey = 'id_spp';
     public function kelas() {
         return $this->belongsTo(Kelas::class, 'kelas_id_kelas');

@@ -30,6 +30,9 @@
                         onclick="return confirm('Yakin ingin menghapus siswa yang dipilih?')">
                         <i class="fas fa-trash"></i> HAPUS
                     </button>
+                    <a href="{{ route('siswa.export.excel') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-file-excel"></i> EXCEL
+                    </a>
                 </div>
 
                 <div class="row mb-3">
@@ -40,15 +43,6 @@
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="search" class="form-label">Cari Siswa</label>
-                        <input type="text" id="search" class="form-control form-control-sm" placeholder="Nama atau NIS">
-                    </div>
-                    <div class="col text-end mt-4">
-                        <a href="{{ route('siswa.export.excel') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-file-excel"></i> EXCEL
-                        </a>
                     </div>
                 </div>
 
@@ -63,7 +57,7 @@
                                 <th>Alamat</th>
                                 <th>Telepon</th>
                                 <th>Angkatan Tahun</th>
-                               
+
                             </tr>
                         </thead>
                         <tbody>
@@ -80,7 +74,7 @@
                                 <td>{{ $siswa->alamat }}</td>
                                 <td>{{ $siswa->telepon }}</td>
                                 <td>{{ $siswa->angkatan }}</td>
-                               
+
                             </tr>
                             @empty
                             <tr>

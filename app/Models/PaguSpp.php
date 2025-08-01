@@ -19,6 +19,6 @@ class PaguSpp extends Model
     }
      public function tahunAjaran()
     {
-        return $this->belongsTo(TahunAjaranKodeKegiatan::class, 'id_tahun_ajaran', 'id_tahun_ajaran_kode_kegiatan');
+        return $this->belongsTo(TahunAjaranKodeKegiatan::class, 'tahun_ajaran_kode_kegiatan', 'id_tahun_ajaran_kode_kegiatan');
     }
 }

@@ -15,6 +15,7 @@ class TahunAjaranKodeKegiatanController extends Controller
     }
     public function store(Request $request)
     {
+        
         $tahun = $request->get('tahun');
         if ($tahun) {
             TahunAjaranKodeKegiatan::firstOrCreate(['tahun' => $tahun]);

@@ -14,7 +14,7 @@
 
      <!-- Dropdown Tahun Ajaran -->
      <li class="nav-item px-3 py-2">
-         <form action="{{ route('tahun.store') }}" method="POST">
+         <form action="{{ route('set-tahun') }}" method="POST">
              @csrf
              <label for="sidebarTahun" class="text-white small">Set Tahun</label>
              <select name="tahun" id="sidebarTahun" class="form-control form-control-sm" onchange="this.form.submit()">
@@ -35,6 +35,8 @@
      </li>
 
      @if(Auth::user()->role == 'bendahara')
+     <!-- Sidebar khusus Bendahara -->
+
      <!-- Divider -->
      <hr class="sidebar-divider">
      <!-- Heading -->
@@ -110,7 +112,7 @@
      </li>
 
      <!-- Nav Item - RKAS -->
-     <li class="{{ request()->is('rkas/view*') ? 'nav-item active' : 'nav-item' }}">
+     <li class="{{ request()->is('rkas/view') ? 'nav-item active' : 'nav-item' }}">
          <a class="nav-link" href="{{ route('rkas.view', ['kategori_id' => 1]) }}">
              <i class="fas fa-file-invoice-dollar"></i>
              <span>RKAS</span>
@@ -121,7 +123,7 @@
      <!-- Nav Item - Pages Collapse Menu -->
 
      <!-- Nav Item - Transaksi -->
-     <li class="{{ request()->is('transaksi/view*') ? 'nav-item active' : 'nav-item' }}">
+     <li class="{{ request()->is('transaksi/view') ? 'nav-item active' : 'nav-item' }}">
          <a class="nav-link" href="{{ url('/transaksi/view') }}">
              <i class="fas fa-exchange-alt"></i>
              <span>Transaksi</span>
@@ -137,13 +139,39 @@
          </a>
      </li>
 
+
+     @elseif(Auth::user()->role == 'kepala sekolah')
+     <!-- Sidebar Kepala Sekolah -->
+
+     <!-- Divider -->
+     <hr class="sidebar-divider">
+     <!-- Heading -->
+     <div class="sidebar-heading">Bendahara</div>
+
+     <!-- Nav Item - RKAS -->
+    <li class="{{ request()->is('rkas/view') ? 'nav-item active' : 'nav-item' }}">
+         <a class="nav-link" href="{{ route('rkas.view', ['kategori_id' => 1]) }}">
+             <i class="fas fa-file-invoice-dollar"></i>
+             <span>RKAS</span>
+         </a>
+     </li>
+
+     <!-- Nav Item - Laporan -->
+     <li class="{{'laporan/view' == request()->path() ? 'nav-item active' : 'nav-item'}}">
+         <a class="nav-link collapsed" href="{{url('/laporan/view')}}">
+             <i class="fas fa-chart-line"></i>
+             <span>Laporan</span>
+         </a>
+     </li>
+
+
      <!-- Nav Item - Utilities Collapse Menu -->
-     <li class="{{'histori/view' == request()->path() ? 'nav-item active' : 'nav-item'}}">
+     <!-- <li class="{{'histori/view' == request()->path() ? 'nav-item active' : 'nav-item'}}">
          <a class="nav-link collapsed" href="{{url('/histori/view')}}">
              </i><i class="fas fa-calendar-alt"></i>
              <span>Histori</span>
          </a>
-     </li>
+     </li> -->
 
 
 

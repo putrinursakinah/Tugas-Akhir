@@ -39,7 +39,8 @@
     </style>
 </head>
 
-@stack('scripts')
+@yield('scripts')
+
 
 <body id="page-top">
 
